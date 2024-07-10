@@ -35,6 +35,25 @@ resource "aws_route_table_association" "b" {
   route_table_id = aws_route_table.rt.id
 }
 
+provider "vault" {
+  address          = "http://50.19.180.193:8200"
+  skip_child_token = true
+
+  auth_login {
+    path = "auth/approle/login"
+
+    parameters = {
+      role_id   = "5e84c80a-87bd-83bc-a2c1-4020089eb91f"
+      secret_id = "f2391d0e-0be8-aa82-d8f9-02966f94b19b"
+    }
+  }
+}
+
+data "vault_kv_secret_v2" "example" {
+  mount = "kv"
+  name  = "test-secret"
+} // Can be accessed value using data.vault_kv_secret_v2.example.data["username"]
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"

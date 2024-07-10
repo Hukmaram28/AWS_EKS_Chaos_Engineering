@@ -1,8 +1,11 @@
+# Infrastructure using CloudFormation YAML templates!
+
+**Note: Infrastructure written using cloudformation templates.**
 
 # EKS Cluster creation using cloudformation
 
-The `vpc.yml` templates creates a VPC with 2 public subnets to two different AZs
-The `cluster.yaml` template creates a EKS cluster with a NodeGroup of 2 t2 small ec2 instances and a fargate profile with farget pod execution roles.
+The `vpc.yml` templates creates a VPC with 2 public and 2 private subnets in two different AZs in aws.
+The `cluster.yaml` template creates a EKS cluster with a NodeGroup of 2 t2 small ec2 instances and a fargate profile with farget pod execution role.
 
 ```
 aws cloudformation deploy \
