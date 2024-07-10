@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  mysql
+  namespace: default
+  labels:
+    app:  mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  mysql
+    spec:
+      containers:
+      - name:  mysql
+        image:  mysql:latest
+        resources:
+          requests:
+            cpu: 256m
+            memory: 1000Mi
+          limits:
+            cpu: 256m
+            memory: 1000Mi
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: root_password
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config
+              key: db_name
+        ports:
+        - containerPort:  3306
+          name:  mysql-port
+        volumeMounts:
+        - name: persistant-storage
+          mountPath: /etc/lib/mysql
+      volumes:
+      - name: persistant-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+      restartPolicy: Always

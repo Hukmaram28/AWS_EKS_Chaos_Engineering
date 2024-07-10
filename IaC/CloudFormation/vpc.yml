@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "VPC creation for cluster"
+
+Resources:
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+
+  MySubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      VpcId: !Ref myVPC
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: MySubnet1
+
+  MySubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.30.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: MySubnet2
+
+  MySubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.50.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: MySubnet3
+
+  MySubnet4:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.70.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: MySubnet4
+
+  MyGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: MyGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref myVPC
+      InternetGatewayId: !Ref MyGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+
+  RouteToInternet:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyGateway
+      RouteTableId: !Ref PublicRouteTable
+
+  RouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref MySubnet1
+
+  RouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref MySubnet2
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http traffic
+      VpcId: !Ref myVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: '0.0.0.0/0'
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: '0.0.0.0/0'
+
+Outputs:
+  VPCId:
+    Description: The ID of the VPC
+    Value: !Ref myVPC
+    Export:
+      Name: !Sub "${AWS::StackName}-VPCId"
+
+  SubnetId1:
+    Description: The ID of the subnet
+    Value: !Ref MySubnet1
+    Export:
+      Name: !Sub "${AWS::StackName}-SubnetId1"
+
+  SubnetId2:
+    Description: The ID of the subnet
+    Value: !Ref MySubnet2
+    Export:
+      Name: !Sub "${AWS::StackName}-SubnetId2"
+
+  SubnetId3:
+    Description: The ID of the subnet
+    Value: !Ref MySubnet3
+    Export:
+      Name: !Sub "${AWS::StackName}-SubnetId3"
+
+  SubnetId4:
+    Description: The ID of the subnet
+    Value: !Ref MySubnet4
+    Export:
+      Name: !Sub "${AWS::StackName}-SubnetId4"
+
+  SecurityGroupId:
+    Description: The ID of the security group
+    Value: !GetAtt MySecurityGroup.GroupId
+    Export:
+      Name: !Sub "${AWS::StackName}-SecurityGroupId"
