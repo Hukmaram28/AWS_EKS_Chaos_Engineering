@@ -37,25 +37,6 @@ resource "aws_route_table_association" "b" {
   route_table_id = aws_route_table.rt.id
 }
 
-/* provider "vault" {
-  address          = var.vault_details.address
-  skip_child_token = var.vault_details.skip_child_token
-
-  auth_login {
-    path = var.vault_details.auth_login_path
-
-    parameters = {
-      role_id   = var.vault_details.role_id
-      secret_id = var.vault_details.secret_id
-    }
-  }
-}
-
-data "vault_kv_secret_v2" "example" {
-  mount = var.vault_details.mount
-  name  = var.vault_details.secret_name
-} // Can be accessed value using data.vault_kv_secret_v2.example.data["username"] */
-
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
@@ -70,6 +51,7 @@ module "eks" {
     eks-pod-identity-agent = {}
     kube-proxy             = {}
     vpc-cni                = {}
+    aws-ebs-csi-driver    = {}
   }
 
   vpc_id                   = aws_vpc.eksVpc.id
@@ -78,14 +60,14 @@ module "eks" {
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    instance_types = ["m6i.large", "m5.large", "m5n.large", "m5zn.large", "t2.micro"]
+    instance_types = ["m6i.large", "m5.large", "m5n.large", "m5zn.large", "t2.micro", "t3.medium"]
   }
 
   eks_managed_node_groups = {
     example = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
       ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["t2.micro"]
+      instance_types = ["t3.medium"]
 
       min_size     = 2
       max_size     = 6

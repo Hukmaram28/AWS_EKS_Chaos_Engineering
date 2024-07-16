@@ -23,4 +23,16 @@ resource "helm_release" "db" {
     name  = "secret.db_root_password"
     value = var.db_root_password
   }
+  # set {
+  #   name  = "secret.db_username"
+  #   value = data.vault_kv_secret_v2.crypteye.data["db_username"]
+  # }
+  # set {
+  #   name  = "secret.db_password"
+  #   value = data.vault_kv_secret_v2.crypteye.data["db_password"]
+  # }
+  # set {
+  #   name  = "secret.db_root_password"
+  #   value = data.vault_kv_secret_v2.crypteye.data["db_root_password"]
+  # }
 }
