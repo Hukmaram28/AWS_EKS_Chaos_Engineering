@@ -1,6 +1,6 @@
 # Infrastructure using CloudFormation YAML templates!
 
-**Note: Infrastructure written using cloudformation templates.**
+**Note: Infrastructure written using cloudformation templates. This is for practice only. please refer to folder `terraform` for complete IaC**
 
 # EKS Cluster creation using cloudformation
 

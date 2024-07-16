@@ -6,7 +6,7 @@ This folder is intended for practice purposes. It contains essential Kubernetes 
 
 This setup creates the following Kubernetes resources:
 
-- **Persistent Volume and Persistent Volume Claim**: Used to persist the MySQL database.
+- **Persistent Volume Claim**: Used to persist the MySQL database.
 - **Secrets Template**: Contains database secrets.
 - **ConfigMap**: Contains the database name.
 - **NodePort Service for MySQL**: Allows access to the database by the API microservice and for external access in the local environment for testing.

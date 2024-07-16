@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web
-  namespace: default
+  name: crypteye-web
+  namespace: dev
   labels:
-    app: web
+    app: crypteye-web
 spec:
   selector:
     matchLabels:
-      app: web
+      app: crypteye-web
   replicas: 2
   strategy:
     rollingUpdate:
@@ -18,10 +18,10 @@ spec:
   template:
     metadata:
       labels:
-        app: web
+        app: crypteye-web
     spec:
       containers:
-        - name: web
+        - name: crypteye-web
           image: crypteye-web:latest
           imagePullPolicy: IfNotPresent
           resources:
@@ -50,5 +50,5 @@ spec:
             periodSeconds: 10
           ports:
             - containerPort: 3000
-              name: web
+              name: crypteye-web-port
       restartPolicy: Always

@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mysql-pvc
-  namespace: default
+  name: db-pvc
+  namespace: dev
   labels:
-    app: mysql-pvc
+    app: db-pvc
 spec:
   storageClassName: manual
   accessModes:

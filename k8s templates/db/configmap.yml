@@ -1,8 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: mysql-config
+  name: db-config
+  namespace: dev
   labels:
-    app: mysql-config
+    app: db-config
 data:
   db_name: crypteye

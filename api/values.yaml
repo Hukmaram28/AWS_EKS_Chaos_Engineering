@@ -1,0 +1,26 @@
+appName: crypteye-api
+
+namespace: {NAMESPACE}
+
+image:
+  name: {CONTAINER_REGISTRY}/{IMAGE_NAME}
+  pullPolicy: IfNotPresent
+  tag: {IMAGE_TAG}
+  containerPort: 3001
+
+resources:
+  requests:
+    cpu: 256m
+    memory: 500Mi
+  limits:
+    cpu: 512m
+    memory: 1000Mi
+
+restartPolicy: Always
+
+replicaCount: 2
+service:
+  name: crypteye-api
+  type: LoadBalancer
+  targetPort: 3001
+  port: 3001

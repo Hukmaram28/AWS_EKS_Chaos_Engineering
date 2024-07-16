@@ -1,15 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql-service
-  namespace: default
+  name: db-service
+  namespace: dev
+  labels:
+    app: db-service
 spec:
   selector:
-    app: mysql
+    app: db
   type: NodePort
-  sessionAffinityConfig:
-    clientIP:
-      timeoutSeconds: 10800
   ports:
     - name: db-port
       protocol: TCP

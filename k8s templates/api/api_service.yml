@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: crypteye-api-service
+  namespace: default
+spec:
+  selector:
+    app: crypteye-api
+  type: LoabBalancer
+  ports:
+    - name: crypteye-api-service-port
+      protocol: TCP
+      port: 3001
+      targetPort: 3001

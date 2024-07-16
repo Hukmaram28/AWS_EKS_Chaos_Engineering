@@ -11,6 +11,8 @@ This Terraform project creates the following resources in an AWS multi-AZ enviro
 - **EKS Cluster**: Deploys an EKS cluster using the Terraform module `terraform-aws-modules/eks/aws`. The EKS cluster includes two t2.micro EC2 nodes.
 - **State Management**: Utilizes Terraform workspaces and a remote backend to store the state file in an S3 bucket and manage state locks using a DynamoDB table.
 - **Vault Integration**: Supports integration with Vault to supply secrets in an encrypted form.
+- **Kubernetes**: `kubernetes.tf` creates a namespace.
+- **Helm**: `helm.tf` deploys mysql db server in the cluster which is required for api microservice.
 
 ## Commands
 

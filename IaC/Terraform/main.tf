@@ -5,15 +5,17 @@ resource "aws_vpc" "eksVpc" {
 }
 
 resource "aws_subnet" "PublicSubnetAZ1" {
-  vpc_id            = aws_vpc.eksVpc.id
-  cidr_block        = var.subnet1_cidr
-  availability_zone = var.az1
+  vpc_id                  = aws_vpc.eksVpc.id
+  cidr_block              = var.subnet1_cidr
+  availability_zone       = var.az1
+  map_public_ip_on_launch = true
 }
 
 resource "aws_subnet" "PublicSubnetAZ2" {
-  vpc_id            = aws_vpc.eksVpc.id
-  cidr_block        = var.subnet2_cidr
-  availability_zone = var.az2
+  vpc_id                  = aws_vpc.eksVpc.id
+  cidr_block              = var.subnet2_cidr
+  availability_zone       = var.az2
+  map_public_ip_on_launch = true
 }
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.eksVpc.id
@@ -35,30 +37,30 @@ resource "aws_route_table_association" "b" {
   route_table_id = aws_route_table.rt.id
 }
 
-provider "vault" {
-  address          = "http://50.19.180.193:8200"
-  skip_child_token = true
+/* provider "vault" {
+  address          = var.vault_details.address
+  skip_child_token = var.vault_details.skip_child_token
 
   auth_login {
-    path = "auth/approle/login"
+    path = var.vault_details.auth_login_path
 
     parameters = {
-      role_id   = "5e84c80a-87bd-83bc-a2c1-4020089eb91f"
-      secret_id = "f2391d0e-0be8-aa82-d8f9-02966f94b19b"
+      role_id   = var.vault_details.role_id
+      secret_id = var.vault_details.secret_id
     }
   }
 }
 
 data "vault_kv_secret_v2" "example" {
-  mount = "kv"
-  name  = "test-secret"
-} // Can be accessed value using data.vault_kv_secret_v2.example.data["username"]
+  mount = var.vault_details.mount
+  name  = var.vault_details.secret_name
+} // Can be accessed value using data.vault_kv_secret_v2.example.data["username"] */
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
 
-  cluster_name    = "my-cluster"
+  cluster_name    = var.cluster_name
   cluster_version = "1.30"
 
   cluster_endpoint_public_access = true
@@ -99,7 +101,7 @@ module "eks" {
     # One access entry with a policy associated
     example = {
       kubernetes_groups = []
-      principal_arn     = "arn:aws:iam::123456789012:role/hukmaram"
+      principal_arn     = "arn:aws:iam::211125556960:user/eksuser"
 
       policy_associations = {
         example = {
@@ -119,7 +121,13 @@ module "eks" {
   }
 }
 
+data "aws_eks_cluster" "cluster" {
+  name = var.cluster_name
+  depends_on = [ module.eks ]
+}
 
-
-
+data "aws_eks_cluster_auth" "cluster" {
+  name = var.cluster_name
+  depends_on = [ module.eks ]
+}
 

@@ -1,0 +1,43 @@
+appName: db
+
+namespace: dev
+
+image:
+  name: mysql
+  pullPolicy: IfNotPresent
+  tag: latest
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 256m
+    memory: 1000Mi
+  limits:
+    cpu: 256m
+    memory: 1000Mi
+
+restartPolicy: Always
+
+containerPort: 3306
+
+mountPath: /etc/lib/mysql
+
+pvc:
+  name: db-pvc
+  storageClassName: gp2
+  storage: 5Gi
+  accessModes: ReadWriteOnce
+  hostPath: "/mnt/data"
+secret:
+  name: db-secret
+  db_username: admin
+  db_password: password
+  db_root_password: password
+configmap:
+  name: db-configmap
+  dbName: crypteye
+service:
+  name: db-service
+  type: ClusterIP
+  port: 3306

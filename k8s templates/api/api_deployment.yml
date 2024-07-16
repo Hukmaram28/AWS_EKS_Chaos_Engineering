@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api
+  name: crypteye-api
   namespace: default
   labels:
-    app: api
+    app: crypteye-api
 spec:
   selector:
     matchLabels:
-      app: api
+      app: crypteye-api
   replicas: 2
   strategy:
     rollingUpdate:
@@ -18,10 +18,10 @@ spec:
   template:
     metadata:
       labels:
-        app: api
+        app: crypteye-api
     spec:
       containers:
-        - name: api
+        - name: crypteye-web
           image: crypteye-api:latest
           imagePullPolicy: IfNotPresent
           resources:
@@ -33,7 +33,7 @@ spec:
               memory: 1000Mi
           livenessProbe:
             tcpSocket:
-              port: 3001
+              port: {{ .Values.image.containerPort }}
             initialDelaySeconds: 10
             timeoutSeconds: 10
             successThreshold: 1
@@ -42,7 +42,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /api
-              port: 3001
+              port: {{ .Values.image.containerPort }}
             initialDelaySeconds: 20
             timeoutSeconds: 20
             successThreshold: 1
@@ -70,5 +70,5 @@ spec:
                   key: password
           ports:
             - containerPort: 3001
-              name: api
+              name: crypteye-api-port
       restartPolicy: Always
