@@ -1,19 +1,19 @@
 appName: crypteye-api
 
-namespace: $NAMESPACE
+namespace: dev
 
 image:
-  name: $CONTAINER_REGISTRY/$IMAGE_NAME
+  name: crypteye-api
   pullPolicy: IfNotPresent
-  tag: $IMAGE_TAG
+  tag: latest
   containerPort: 3001
 
 resources:
   requests:
     cpu: 256m
-    memory: 500Mi
+    memory: 1000Mi
   limits:
-    cpu: 512m
+    cpu: 256m
     memory: 1000Mi
 
 restartPolicy: Always
