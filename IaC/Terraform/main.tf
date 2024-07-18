@@ -117,7 +117,7 @@ data "aws_eks_cluster_auth" "cluster" {
 resource "aws_s3_bucket" "tf-state-storage" {
   bucket = var.tfstate_bucket_name
 
-  force_destroy = true
+  force_destroy = false
 }
 
 data "aws_s3_bucket" "selected" {
