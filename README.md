@@ -276,7 +276,7 @@ Let's test this!
 
 3. Click run chaos in the experiment builder and set the target application accordingly. we will select api deployment in the namespace dev which is deployed using the helm chart by our pipeline.
 
-~[target_application](./images/litmus_target_application.png)
+![target_application](./images/litmus_target_application.png)
 
 4. In the sidebar there is option to tune fault. Keep default values and give a score to this experiment out of 10. I kept it 10, This is used to calculate the overall resilience score of the application.
 
