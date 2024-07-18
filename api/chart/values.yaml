@@ -1,0 +1,29 @@
+appName: crypteye-api
+
+namespace: dev
+
+image:
+  name: crypteye-api
+  pullPolicy: IfNotPresent
+  tag: latest
+  containerPort: 3001
+
+resources:
+  requests:
+    cpu: 256m
+    memory: 1000Mi
+  limits:
+    cpu: 256m
+    memory: 1000Mi
+
+restartPolicy: Always
+dbServiceName: db-service
+dbSecretName: db-secret
+dbConfigMapName: db-configmap
+
+replicaCount: 2
+service:
+  name: crypteye-api
+  type: LoadBalancer
+  targetPort: 3001
+  port: 3001

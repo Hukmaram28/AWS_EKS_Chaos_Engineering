@@ -5,15 +5,17 @@ resource "aws_vpc" "eksVpc" {
 }
 
 resource "aws_subnet" "PublicSubnetAZ1" {
-  vpc_id            = aws_vpc.eksVpc.id
-  cidr_block        = var.subnet1_cidr
-  availability_zone = var.az1
+  vpc_id                  = aws_vpc.eksVpc.id
+  cidr_block              = var.subnet1_cidr
+  availability_zone       = var.az1
+  map_public_ip_on_launch = true
 }
 
 resource "aws_subnet" "PublicSubnetAZ2" {
-  vpc_id            = aws_vpc.eksVpc.id
-  cidr_block        = var.subnet2_cidr
-  availability_zone = var.az2
+  vpc_id                  = aws_vpc.eksVpc.id
+  cidr_block              = var.subnet2_cidr
+  availability_zone       = var.az2
+  map_public_ip_on_launch = true
 }
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.eksVpc.id
@@ -39,7 +41,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
 
-  cluster_name    = "my-cluster"
+  cluster_name    = var.cluster_name
   cluster_version = "1.30"
 
   cluster_endpoint_public_access = true
@@ -49,6 +51,7 @@ module "eks" {
     eks-pod-identity-agent = {}
     kube-proxy             = {}
     vpc-cni                = {}
+    aws-ebs-csi-driver    = {}
   }
 
   vpc_id                   = aws_vpc.eksVpc.id
@@ -57,14 +60,14 @@ module "eks" {
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    instance_types = ["m6i.large", "m5.large", "m5n.large", "m5zn.large", "t2.micro"]
+    instance_types = ["m6i.large", "m5.large", "m5n.large", "m5zn.large", "t2.micro", "t3.medium"]
   }
 
   eks_managed_node_groups = {
     example = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
       ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["t2.micro"]
+      instance_types = ["t3.medium"]
 
       min_size     = 2
       max_size     = 6
@@ -80,7 +83,7 @@ module "eks" {
     # One access entry with a policy associated
     example = {
       kubernetes_groups = []
-      principal_arn     = "arn:aws:iam::123456789012:role/hukmaram"
+      principal_arn     = "arn:aws:iam::211125556960:user/eksuser"
 
       policy_associations = {
         example = {
@@ -100,7 +103,36 @@ module "eks" {
   }
 }
 
+data "aws_eks_cluster" "cluster" {
+  name = var.cluster_name
+  depends_on = [ module.eks ]
+}
 
+data "aws_eks_cluster_auth" "cluster" {
+  name = var.cluster_name
+  depends_on = [ module.eks ]
+}
 
+// setup s3 bucket to store terraform state
+resource "aws_s3_bucket" "tf-state-storage" {
+  bucket = var.tfstate_bucket_name
 
+  force_destroy = true
+}
 
+data "aws_s3_bucket" "selected" {
+  bucket = var.tfstate_bucket_name
+  depends_on = [ aws_s3_bucket.tf-state-storage ]
+}
+
+// setup dynamodb table to lock state file
+resource "aws_dynamodb_table" "dynamodb-terraform-state-lock" {
+  name           = var.dynamodb_table_name
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}

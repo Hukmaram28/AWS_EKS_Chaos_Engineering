@@ -1,0 +1,13 @@
+.DS_Store
+helm/charts/crypteye-api-0.1.0.tgz
+helm/charts/crypteye-web-0.1.0.tgz
+helm/charts/db-0.1.0.tgz
+helm/charts/crypteye-api-0.1.0.tgz
+helm/charts/crypteye-web-0.1.0.tgz
+helm/charts/db-0.1.0.tgz
+IaC/Terraform/.terraform
+IaC/Terraform/.terraform.lock.hcl
+IaC/Terraform/.terraform.tfstate.lock.info
+IaC/Terraform/terraform.tfstate
+IaC/Terraform/terraform.tfstate.backup
+IaC/Terraform/variables.tf

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-config
+  namespace: dev
+  labels:
+    app: db-config
+data:
+  db_name: crypteye

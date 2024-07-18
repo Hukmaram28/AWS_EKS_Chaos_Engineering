@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      containers:
+        - name: {{ .Values.appName }}
+          image: {{ include "crypteye-web.image.name" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.image.containerPort }}
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api
+              port: {{ .Values.image.containerPort }}
+            initialDelaySeconds: 20
+            timeoutSeconds: 20
+            successThreshold: 1
+            failureThreshold: 3
+            periodSeconds: 20
+          ports:
+            - containerPort: {{ .Values.image.containerPort }}
+              name: "{{ .Values.appName }}"
+      restartPolicy: {{ .Values.restartPolicy }}

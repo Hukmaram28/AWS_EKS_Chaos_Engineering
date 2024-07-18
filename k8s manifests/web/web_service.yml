@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: crypteye-web-service
+  namespace: dev
+  labels:
+    app: crypteye-web-service
+spec:
+  selector:
+    app: crypteye-web
+  type: LoadBalancer
+  ports:
+    - name: crypteye-web-service-port
+      protocol: TCP
+      port: 3000
+      targetPort: 3000

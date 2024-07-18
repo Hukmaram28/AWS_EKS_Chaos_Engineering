@@ -1,0 +1,68 @@
+version: 0.2
+
+env:
+  variables:
+    IMAGE_REPO_NAME: "crypteye-web"
+    AWS_ACCOUNT_ID: "211125556960"
+    AWS_DEFAULT_REGION: "us-east-1"
+    EKS_CLUSTER_NAME: "my-cluster"
+    NAMESPACE: "dev"
+
+phases:
+  install:
+    commands:
+      - echo Installing app dependencies...
+      - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/linux/amd64/kubectl
+      - chmod +x ./kubectl
+      - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+      - curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+      - chmod 700 get_helm.sh
+      - sh ./get_helm.sh
+      - echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+      - source ~/.bashrc
+      - echo 'Check kubectl version'
+      - kubectl version --short --client
+      - echo 'Check kubectl version'
+      - helm version --short
+  pre_build:
+    commands:
+      - echo Logging into Amazon EKS...
+      - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $EKS_CLUSTER_NAME
+      - echo check config
+      - kubectl config view --minify
+      - echo check kubectl access
+      - kubectl get svc
+      - echo loggin into amazon ECR...
+      - aws --version
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/$IMAGE_REPO_NAME
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_NAME=$IMAGE_REPO_NAME
+      - IMAGE_TAG=$COMMIT_HASH
+      - CONTAINER_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:$COMMIT_HASH -f Dockerfile .
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $REPOSITORY_URI:$COMMIT_HASH
+      - echo Writing image definitions file...
+      - printf '[{"name":"%s","imageUri":"%s"}]' $IMAGE_REPO_NAME $REPOSITORY_URI:$COMMIT_HASH > imagedefinitions.json
+      - cat imagedefinitions.json
+      - echo templating out values.yaml
+      - cat values.yaml | envsubst > ./chart/values.yaml
+      - cat ./chart/values.yaml
+      - echo builing helm package
+      - helm package ./chart --destination ./chart --app-version $COMMIT_HASH
+      - echo pushing helm package to ecr
+      - helm push ./chart/$IMAGE_REPO_NAME-0.1.0.tgz oci://$AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/
+      - echo Deploying the helm chart
+      - helm upgrade $IMAGE_REPO_NAME ./chart/$IMAGE_REPO_NAME-0.1.0.tgz --install --atomic --namespace $NAMESPACE
+      - echo helm deployed
+      - echo Done.
+
+artifacts:
+  files: imagedefinitions.json
