@@ -113,3 +113,26 @@ data "aws_eks_cluster_auth" "cluster" {
   depends_on = [ module.eks ]
 }
 
+// setup s3 bucket to store terraform state
+resource "aws_s3_bucket" "tf-state-storage" {
+  bucket = var.tfstate_bucket_name
+
+  force_destroy = true
+}
+
+data "aws_s3_bucket" "selected" {
+  bucket = var.tfstate_bucket_name
+  depends_on = [ aws_s3_bucket.tf-state-storage ]
+}
+
+// setup dynamodb table to lock state file
+resource "aws_dynamodb_table" "dynamodb-terraform-state-lock" {
+  name           = var.dynamodb_table_name
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}

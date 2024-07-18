@@ -40,6 +40,18 @@ variable "az2" {
   description = "availability zone 1"
 }
 
+variable "tfstate_bucket_name" {
+  type        = string
+  default     = "tf-state-storage-hukma"
+  description = "terraform state bucket name"
+}
+
+variable "dynamodb_table_name" {
+  type        = string
+  default     = "terraform-lock"
+  description = "terraform state bucket name"
+}
+
 variable "vault_details" {
   type = object({
     address          = string

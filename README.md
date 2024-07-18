@@ -1,28 +1,43 @@
+markdown
+
 # AWS_EKS_CICD_Chaos_Engineering
 
 ## Overview
 
-This project has covered following topics-
+This project covers the following topics:
 
-- Created k8s manifest files for mysql db, api and web microservices (available under folder `k8s manifests`) and helm chart templates (available under folder `helm`).
-<!-- 2. Set-up terraform remote backend to store statefile in S3, Store lock file to dynamodb table and setup terraform spaces. -->
-- Set up a highly available (HA) Vault cluster in EKS and accessed secrets in Terraform using the Terraform Vault provider.
-<!-- 4. Modify helm charts to include a vault sidecar agent to inject secrets from vault. -->
-- Created EKS cluster using terraform (available under `./Iac/Terraform`) and deployed MYSQL database in cluster using helm terraform provider.
-- Set up a CI/CD pipeline for web and API microservices to build source code, build Docker images, push images to ECR, create Helm packages, push the packages to ECR, and deploy the Helm packages to the EKS cluster in the development namespace with auto-rollback feature.
-- Demonstrated Chaos Engineering using Litmus Chaos tool.
+- **Kubernetes Manifest Files and Helm Charts:**
 
-Used tools: EKS, Terraform, Helm, Vault, Litmus Chaos, ECR, CodeBuild, CodePipeline, Docker, Github, Cluster Auto-scaler, Github
+  - Created Kubernetes manifest files for MySQL database, API, and web microservices (available under the folder `k8s manifests`).
+  - Created Helm chart templates (available under the folder `helm`).
+
+- **Infrastructure as Code (IaC) with Terraform and CloudFormation:**
+
+  - Wrote IaC using Terraform and set up a remote backend to store the state file in an S3 bucket, a DynamoDB table to lock the state file, and configured Terraform dev workspace (available at `./IaC/Terraform/`).
+  - Set up a highly available (HA) Vault cluster in EKS and accessed secrets in Terraform using the Terraform Vault provider (available at `./IaC/Terraform/vault.tf`).
+  - Created an EKS cluster using Terraform (available under `./IaC/Terraform`) and deployed the MySQL database in the cluster using the Helm Terraform provider.
+
+- **CI/CD Pipeline Setup:**
+
+  - Set up a CI/CD pipeline for web and API microservices to build source code, build Docker images, push images to ECR, create Helm packages, push the packages to ECR, and deploy the Helm packages to the EKS cluster in the dev namespace with an auto-rollback feature.
+
+- **Chaos Engineering and Cluster Management:**
+  - Demonstrated Chaos Engineering using the Litmus Chaos tool.
+  - Set up a cluster auto-scaler to automatically scale in or out the cluster size/nodes.
+
+**Tools Used:** EKS, Terraform, Helm, Vault, Litmus Chaos, ECR, CodeBuild, CodePipeline, Docker, GitHub, Cluster Auto-scaler, etc.
+
+**TODO:** Modify Helm charts to include a Vault sidecar agent to inject secrets from Vault.
 
 ## Vault Setup
 
-We will use Vault to store required secrets for our application. We will store `db_name`, `db_username`, `db_password`, and `db_root_password` in the HA Vault.
+We will use Vault to store the required secrets for our application. We will store `db_name`, `db_username`, `db_password`, and `db_root_password` in the HA Vault.
 
 **NOTE:** The Vault cluster is in a separate EKS cluster from the application EKS cluster for higher resilience and availability.
 
 Follow these steps:
 
-1. Set up a Vault HA cluster and enable auto unseal to access secrets without manually unsealing it. Instructions can be found [here](https://github.com/Hukmaram28/HA_Vault_Cluster_EKS/).
+1. Set up a Vault HA cluster and enable auto unseal. Complete instructions are available [here](https://github.com/Hukmaram28/HA_Vault_Cluster_EKS/).
 
 2. Exec to the leader vault pod and store secrets in kv-v2 engine and create a policy and a role. To do so please execute below commands-
 
@@ -113,17 +128,29 @@ Now uncomment helm.tf and db helm chart can be deployed by running `terraform ap
 
 ## CICD Pipeline setup
 
-1. To automate the web and api microservices deployment to the EKS cluster using codePipeline, we will make changes to the buildspec.yaml files to a). Install helm, b). template out the helm values.yaml file, c). package helm chart, d). push helm chart to ECR, e). Connect to k8s cluster, f). Install/Upgrade the helm package to the EKS cluster. In case of deployment failure we should rollback to the previous helm release.
+1. **Automate Deployment with CodePipeline:**
 
-2. In order to codeBuild to work properly we need to assign an IAM role with certain AWS managed policies. Create an IAM role with name like `CodeBuildEKSRole` and attach following policies to it (refer to ./CodeBuildEKSRole.sh)-
+   - To automate the deployment of the web and API microservices to the EKS cluster using CodePipeline, we will make changes to the `buildspec.yaml` files to:
+     - Install Helm
+     - Template out the Helm `values.yaml` file
+     - Package the Helm chart
+     - Push the Helm chart to ECR
+     - Connect to the Kubernetes cluster
+     - Install/Upgrade the Helm package to the EKS cluster. In case of deployment failure, we should rollback to the previous Helm release.
+
+2. **Assign IAM Role to CodeBuild:**
+
+   - To allow CodeBuild to work properly, we need to assign an IAM role with specific AWS managed policies. Create an IAM role with a name like `CodeBuildEKSRole` and attach the following policies to it (refer to `./CodeBuildEKSRole.sh`):
 
    ![CodeBuild Permissions](./images/CodeBuildEKSRole.png)
 
-3. Even though the CodeBuild role has permission to authenticate to the cluster, it doesn’t have the required RBAC access to do any other action on the cluster. So we need to edit aws-auth configmap.
+3. **Configure RBAC for CodeBuild:**
 
-```
-eksctl create iamidentitymapping --cluster my-cluster --arn arn:aws:iam::211125556960:role/CodeBuildEKSRole --group system:masters --username CodeBuildEKSRole
-```
+   - Even though the CodeBuild role has permission to authenticate to the cluster, it doesn’t have the required RBAC access to perform other actions on the cluster. So we need to edit the `aws-auth` configmap:
+
+   ```
+   eksctl create iamidentitymapping --cluster my-cluster --arn arn:aws:iam::211125556960:role/CodeBuildEKSRole --group system:masters --username CodeBuildEKSRole
+   ```
 
 4. Make the changes to buildspec.yaml file in api and web microservices accordinly as described above.
 
@@ -403,24 +430,25 @@ kubectl -n kube-system logs -f deployment.apps/cluster-autoscaler
 
 ---
 
-Similarly we can also do other experiments such as Node drain or Node cpu hog experiment and the state of cluster can be ovserved using lens k8s IDE.
+Similarly, we can also perform other experiments such as node drain or node CPU hog experiments, and the state of the cluster can be observed using the Lens Kubernetes IDE.
 
-NOTE: We can use Gitops to automatically store Chaos workflow configuration to the Github repository. Any changes made in the github will automatically sync in Chaos Center.
+**NOTE:** We can use GitOps to automatically store Chaos workflow configurations in a GitHub repository. Any changes made in GitHub will automatically sync with the Chaos Center.
 
 ![GitOps](./images/gitops.png)
 
-NOTE: We can trigger workflows using EventTrackerPolicy in kubernetes. To do so, we need to annotate the targate k8s application with the "litmuschaos.io/workflow={workflow_id}" and "litmuschaos.io/gitops=true". and then create an EventTrackerPolicy which will trigger the workflow when the condition is met.
+**NOTE:** We can trigger workflows using EventTrackerPolicy in Kubernetes. To do so, we need to annotate the target Kubernetes application with `"litmuschaos.io/workflow={workflow_id}"` and `"litmuschaos.io/gitops=true"`, and then create an EventTrackerPolicy which will trigger the workflow when the condition is met.
 
-# Other Chaos Engineering tools
+# Other Chaos Engineering Tools
 
 ### Chaos Toolkit
 
-Kuberentes Chaos using code. It is a python based tool.
+Chaos Toolkit is a Python-based tool for Kubernetes chaos engineering using code.
 
 ### KubeInvaders
 
-KubeInvaders works only for pod deletion. It’s a fun way of doing Kubernetes chaos Engineering on the terminal.
+KubeInvaders works only for pod deletion. It’s a fun way to practice Kubernetes chaos engineering in the terminal.
 
 # Cleanup
 
-To cleanup everything, we can just run 'terraform destroy' since our infrastructure is created using Terraform IaC script.
+To clean up everything, simply run `terraform destroy` since our infrastructure is created using Terraform IaC scripts.
+
