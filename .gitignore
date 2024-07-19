@@ -11,3 +11,4 @@ IaC/Terraform/.terraform.tfstate.lock.info
 IaC/Terraform/terraform.tfstate
 IaC/Terraform/terraform.tfstate.backup
 IaC/Terraform/variables.tf
+IaC/Terraform/errored.tfstate

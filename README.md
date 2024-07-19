@@ -1,5 +1,3 @@
-markdown
-
 # AWS_EKS_CICD_Chaos_Engineering
 
 ## Overview
