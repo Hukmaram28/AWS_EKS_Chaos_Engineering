@@ -41,7 +41,7 @@ spec:
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /api
+              path: /
               port: {{ .Values.image.containerPort }}
             initialDelaySeconds: 20
             timeoutSeconds: 20
